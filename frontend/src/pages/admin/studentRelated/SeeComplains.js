@@ -7,17 +7,20 @@ import { getAllComplains } from '../../../redux/complainRelated/complainHandle';
 import TableTemplate from '../../../components/TableTemplate';
 
 const SeeComplains = () => {
+  const label = { inputProps: { 'aria-label': 'Checkbox demo' } };
+  const dispatch = useDispatch();
 
-  const label = { inputProps: { 'aria-label': 'Checkbox demo' } };  const dispatch = useDispatch();
   const { complainsList, loading, error, response } = useSelector((state) => state.complain);
-  const { currentUser } = useSelector(state => state.user)
+  const { currentUser } = useSelector((state) => state.user);
 
   useEffect(() => {
-    dispatch(getAllComplains(currentUser._id, "Complain"));
-  }, [currentUser._id, dispatch]);
+    if (currentUser?._id) {
+      dispatch(getAllComplains(currentUser._id, "Complain"));
+    }
+  }, [currentUser?._id, dispatch]);
 
   if (error) {
-    console.log(error);
+    console.error("Complain fetch error:", error);
   }
 
   const complainColumns = [
@@ -26,16 +29,23 @@ const SeeComplains = () => {
     { id: 'date', label: 'Date', minWidth: 170 },
   ];
 
-  const complainRows = complainsList && complainsList.length > 0 && complainsList.map((complain) => {
-    const date = new Date(complain.date);
-    const dateString = date.toString() !== "Invalid Date" ? date.toISOString().substring(0, 10) : "Invalid Date";
-    return {
-      user: complain.user.name,
-      complaint: complain.complaint,
-      date: dateString,
-      id: complain._id,
-    };
-  });
+  const complainRows =
+    Array.isArray(complainsList) && complainsList.length > 0
+      ? complainsList.map((complain) => {
+          const date = new Date(complain?.date);
+          const dateString =
+            date.toString() !== "Invalid Date"
+              ? date.toISOString().substring(0, 10)
+              : "Invalid Date";
+
+          return {
+            user: complain?.user?.name ?? "Unknown User",
+            complaint: complain?.complaint ?? "No complaint provided",
+            date: dateString,
+            id: complain?._id ?? Math.random().toString(36).slice(2),
+          };
+        })
+      : [];
 
   const ComplainButtonHaver = ({ row }) => {
     return (
@@ -47,23 +57,31 @@ const SeeComplains = () => {
 
   return (
     <>
-      {loading ?
+      {loading ? (
         <div>Loading...</div>
-        :
+      ) : (
         <>
-          {response ?
+          {response ? (
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
               No Complains Right Now
             </Box>
-            :
+          ) : (
             <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-              {Array.isArray(complainsList) && complainsList.length > 0 &&
-                <TableTemplate buttonHaver={ComplainButtonHaver} columns={complainColumns} rows={complainRows} />
-              }
+              {Array.isArray(complainsList) && complainsList.length > 0 ? (
+                <TableTemplate
+                  buttonHaver={ComplainButtonHaver}
+                  columns={complainColumns}
+                  rows={complainRows}
+                />
+              ) : (
+                <Box sx={{ padding: '16px', textAlign: 'center' }}>
+                  No complaints available
+                </Box>
+              )}
             </Paper>
-          }
+          )}
         </>
-      }
+      )}
     </>
   );
 };

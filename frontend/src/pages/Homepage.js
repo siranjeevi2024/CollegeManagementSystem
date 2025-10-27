@@ -36,7 +36,7 @@ const Homepage = () => {
               <TypewriterTitle>{displayedText}</TypewriterTitle>
 
               <BodyText>
-                Streamline college management, organize classes, and add students & faculty. 
+                Streamline college management, organize classes, and add students & faculty.
                 Track attendance, assess performance, and provide feedback seamlessly.
               </BodyText>
 
@@ -58,6 +58,7 @@ const Homepage = () => {
             </StyledCard>
           </Grid>
         </Grid>
+
       </StyledContainer>
     </BackgroundWrapper>
   );
@@ -179,3 +180,5 @@ const StyledLink = styled(Link)`
   width: 100%;
   text-decoration: none;
 `;
+
+

@@ -1,197 +1,166 @@
-import React, { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux';
-import { useParams } from 'react-router-dom';
-import { getUserDetails } from '../../../redux/userRelated/userHandle';
-import { getSubjectList } from '../../../redux/sclassRelated/sclassHandle';
-import { updateStudentFields } from '../../../redux/studentRelated/studentHandle';
-
+import React, { useEffect, useState, useMemo } from 'react';
 import {
-    Box, InputLabel,
-    MenuItem, Select,
-    Typography, Stack,
-    TextField, CircularProgress, FormControl
+    Box,
+    Typography,
+    Button,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Paper,
+    TextField,
+    Select,
+    MenuItem,
+    FormControl,
+    InputLabel,
+    Snackbar,
+    Alert,
 } from '@mui/material';
-import { PurpleButton } from '../../../components/buttonStyles';
-import Popup from '../../../components/Popup';
+import { useDispatch, useSelector } from 'react-redux';
+import { getAllStudentAttendance } from '../../../redux/studentRelated/studentHandle';
+import { getAllStudents } from '../../../redux/studentRelated/studentHandle';
 
-const StudentAttendance = ({ situation }) => {
+const StudentAttendance = () => {
     const dispatch = useDispatch();
-    const { currentUser, userDetails, loading } = useSelector((state) => state.user);
-    const { subjectsList } = useSelector((state) => state.sclass);
-    const { response, error, statestatus } = useSelector((state) => state.student);
-    const params = useParams()
+    const { studentsList, loading, error } = useSelector(state => state.student);
+    const { currentUser } = useSelector(state => state.user);
 
-    const [studentID, setStudentID] = useState("");
-    const [subjectName, setSubjectName] = useState("");
-    const [chosenSubName, setChosenSubName] = useState("");
-    const [status, setStatus] = useState('');
-    const [date, setDate] = useState('');
-
-    const [showPopup, setShowPopup] = useState(false);
-    const [message, setMessage] = useState("");
-    const [loader, setLoader] = useState(false)
+    const [selectedClass, setSelectedClass] = useState('');
+    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+    // const [attendanceData, setAttendanceData] = useState([]);
+    const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+    const [snackbarKey, setSnackbarKey] = useState(0);
 
     useEffect(() => {
-        if (situation === "Student") {
-            setStudentID(params.id);
-            const stdID = params.id
-            dispatch(getUserDetails(stdID, "Student"));
+        if (currentUser && currentUser._id) {
+            dispatch(getAllStudents(currentUser._id));
+            dispatch(getAllStudentAttendance(currentUser._id));
         }
-        else if (situation === "Subject") {
-            const { studentID, subjectID } = params
-            setStudentID(studentID);
-            dispatch(getUserDetails(studentID, "Student"));
-            setChosenSubName(subjectID);
+    }, [dispatch, currentUser]);
+
+    const attendanceData = useMemo(() => {
+        if (selectedClass && selectedDate && studentsList) {
+            return studentsList.filter(att => att.date === selectedDate && att.student.sclassName._id === selectedClass);
         }
-    }, [situation]);
+        return [];
+    }, [selectedClass, selectedDate, studentsList]);
 
     useEffect(() => {
-        if (userDetails && userDetails.sclassName && situation === "Student") {
-            dispatch(getSubjectList(userDetails.sclassName._id, "ClassSubjects"));
+        if (error) {
+            setSnackbar({ open: true, message: error, severity: 'error' });
+            setSnackbarKey(prev => prev + 1);
         }
-    }, [dispatch, userDetails]);
+    }, [error]);
 
-    const changeHandler = (event) => {
-        const selectedSubject = subjectsList.find(
-            (subject) => subject.subName === event.target.value
-        );
-        setSubjectName(selectedSubject.subName);
-        setChosenSubName(selectedSubject._id);
-    }
+    const handleClassChange = (event) => {
+        setSelectedClass(event.target.value);
+    };
 
-    const fields = { subName: chosenSubName, status, date }
+    const handleDateChange = (event) => {
+        setSelectedDate(event.target.value);
+    };
 
-    const submitHandler = (event) => {
-        event.preventDefault()
-        setLoader(true)
-        dispatch(updateStudentFields(studentID, fields, "StudentAttendance"))
-    }
+    const uniqueClasses = useMemo(() => {
+        return studentsList ? [...new Set(studentsList.map(student => student.sclassName._id))] : [];
+    }, [studentsList]);
 
-    useEffect(() => {
-        if (response) {
-            setLoader(false)
-            setShowPopup(true)
-            setMessage(response)
-        }
-        else if (error) {
-            setLoader(false)
-            setShowPopup(true)
-            setMessage("error")
-        }
-        else if (statestatus === "added") {
-            setLoader(false)
-            setShowPopup(true)
-            setMessage("Done Successfully")
-        }
-    }, [response, statestatus, error])
+    const classOptions = useMemo(() => {
+        return uniqueClasses.map(classId => {
+            const classObj = studentsList.find(student => student.sclassName._id === classId);
+            return { id: classId, name: classObj ? classObj.sclassName.sclassName : '' };
+        }).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    }, [uniqueClasses, studentsList]);
+
+    const studentsInClass = useMemo(() => {
+        return studentsList ? studentsList.filter(student => student.sclassName._id === selectedClass) : [];
+    }, [studentsList, selectedClass]);
+
+    const getAttendanceStatus = useMemo(() => {
+        return (studentId) => {
+            const attendance = attendanceData.find(att => att.student === studentId);
+            return attendance ? attendance.status : 'Not Marked';
+        };
+    }, [attendanceData]);
+
+    if (loading) return <Typography>Loading...</Typography>;
 
     return (
-        <>
-            {loading
-                ?
-                <>
-                    <div>Loading...</div>
-                </>
-                :
-                <>
-                    <Box
-                        sx={{
-                            flex: '1 1 auto',
-                            alignItems: 'center',
-                            display: 'flex',
-                            justifyContent: 'center'
-                        }}
+        <Box sx={{ p: 3 }}>
+            <Typography variant="h4" gutterBottom>
+                Student Attendance
+            </Typography>
+
+            <Box sx={{ mb: 3, display: 'flex', gap: 2, alignItems: 'center' }}>
+                <FormControl sx={{ minWidth: 200 }}>
+                    <InputLabel>Select Class</InputLabel>
+                    <Select
+                        value={selectedClass}
+                        onChange={handleClassChange}
+                        label="Select Class"
                     >
-                        <Box
-                            sx={{
-                                maxWidth: 550,
-                                px: 3,
-                                py: '100px',
-                                width: '100%'
-                            }}
-                        >
-                            <Stack spacing={1} sx={{ mb: 3 }}>
-                                <Typography variant="h4">
-                                    Student Name: {userDetails.name}
-                                </Typography>
-                                {currentUser.teachSubject &&
-                                    <Typography variant="h4">
-                                        Subject Name: {currentUser.teachSubject?.subName}
-                                    </Typography>
-                                }
-                            </Stack>
-                            <form onSubmit={submitHandler}>
-                                <Stack spacing={3}>
-                                    {
-                                        situation === "Student" &&
-                                        <FormControl fullWidth>
-                                            <InputLabel id="demo-simple-select-label">Select Subject</InputLabel>
-                                            <Select
-                                                labelId="demo-simple-select-label"
-                                                id="demo-simple-select"
-                                                value={subjectName}
-                                                label="Choose an option"
-                                                onChange={changeHandler} required
-                                            >
-                                                {subjectsList ?
-                                                    subjectsList.map((subject, index) => (
-                                                        <MenuItem key={index} value={subject.subName}>
-                                                            {subject.subName}
-                                                        </MenuItem>
-                                                    ))
-                                                    :
-                                                    <MenuItem value="Select Subject">
-                                                        Add Subjects For Attendance
-                                                    </MenuItem>
-                                                }
-                                            </Select>
-                                        </FormControl>
-                                    }
-                                    <FormControl fullWidth>
-                                        <InputLabel id="demo-simple-select-label">Attendance Status</InputLabel>
-                                        <Select
-                                            labelId="demo-simple-select-label"
-                                            id="demo-simple-select"
-                                            value={status}
-                                            label="Choose an option"
-                                            onChange={(event) => setStatus(event.target.value)}
-                                            required
-                                        >
-                                            <MenuItem value="Present">Present</MenuItem>
-                                            <MenuItem value="Absent">Absent</MenuItem>
-                                        </Select>
-                                    </FormControl>
-                                    <FormControl>
-                                        <TextField
-                                            label="Select Date"
-                                            type="date"
-                                            value={date}
-                                            onChange={(event) => setDate(event.target.value)} required
-                                            InputLabelProps={{
-                                                shrink: true,
-                                            }}
-                                        />
-                                    </FormControl>
-                                </Stack>
+                        {classOptions.map((classOption) => (
+                            <MenuItem key={classOption.id} value={classOption.id}>
+                                {classOption.name}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+                <TextField
+                    label="Select Date"
+                    type="date"
+                    value={selectedDate}
+                    onChange={handleDateChange}
+                    InputLabelProps={{ shrink: true }}
+                />
+            </Box>
 
-                                <PurpleButton
-                                    fullWidth
-                                    size="large"
-                                    sx={{ mt: 3 }}
-                                    variant="contained"
-                                    type="submit"
-                                    disabled={loader}
-                                >
-                                    {loader ? <CircularProgress size={24} color="inherit" /> : "Submit"}
-                                </PurpleButton>
-                            </form>
-                        </Box>
-                    </Box>
-                    <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
-                </>
-            }
-        </>
-    )
-}
+            {selectedClass && (
+                <TableContainer component={Paper}>
+                    <Table>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell>Roll Number</TableCell>
+                                <TableCell>Name</TableCell>
+                                <TableCell>Attendance Status</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {studentsInClass.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={3} align="center">
+                                        <Typography variant="body1" color="textSecondary">
+                                            No students found in this class
+                                        </Typography>
+                                    </TableCell>
+                                </TableRow>
+                            ) : (
+                                studentsInClass.map((student) => (
+                                    <TableRow key={student._id}>
+                                        <TableCell>{student.rollNum}</TableCell>
+                                        <TableCell>{student.name}</TableCell>
+                                        <TableCell>{getAttendanceStatus(student._id)}</TableCell>
+                                    </TableRow>
+                                ))
+                            )}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+            )}
 
-export default StudentAttendance
+            <Snackbar
+                key={snackbarKey}
+                open={snackbar.open}
+                autoHideDuration={6000}
+                onClose={() => setSnackbar({ ...snackbar, open: false })}
+            >
+                <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity}>
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
+        </Box>
+    );
+};
+
+export default StudentAttendance;

@@ -9,7 +9,8 @@ import {
     getFailedTwo,
     getSubjectsSuccess,
     getSubDetailsSuccess,
-    getSubDetailsRequest
+    getSubDetailsRequest,
+    getTeachersSuccess
 } from './sclassSlice';
 
 export const getAllSclasses = (id, address) => async (dispatch) => {
@@ -23,7 +24,7 @@ export const getAllSclasses = (id, address) => async (dispatch) => {
             dispatch(getSuccess(result.data));
         }
     } catch (error) {
-        dispatch(getError(error));
+        dispatch(getError(error.message || 'An error occurred'));
     }
 }
 
@@ -38,7 +39,7 @@ export const getClassStudents = (id) => async (dispatch) => {
             dispatch(getStudentsSuccess(result.data));
         }
     } catch (error) {
-        dispatch(getError(error));
+        dispatch(getError(error.message || 'An error occurred'));
     }
 }
 
@@ -51,7 +52,7 @@ export const getClassDetails = (id, address) => async (dispatch) => {
             dispatch(detailsSuccess(result.data));
         }
     } catch (error) {
-        dispatch(getError(error));
+        dispatch(getError(error.message || 'An error occurred'));
     }
 }
 
@@ -66,7 +67,52 @@ export const getSubjectList = (id, address) => async (dispatch) => {
             dispatch(getSubjectsSuccess(result.data));
         }
     } catch (error) {
-        dispatch(getError(error));
+        dispatch(getError(error.message || 'An error occurred'));
+    }
+}
+
+export const getAllSubjects = (id) => async (dispatch) => {
+    dispatch(getRequest());
+
+    try {
+        const result = await axios.get(`${process.env.REACT_APP_BASE_URL}/AllSubjects/${id}`);
+        if (result.data.message) {
+            dispatch(getFailed(result.data.message));
+        } else {
+            dispatch(getSubjectsSuccess(result.data));
+        }
+    } catch (error) {
+        dispatch(getError(error.message || 'An error occurred'));
+    }
+}
+
+export const getAllTeachers = (id) => async (dispatch) => {
+    dispatch(getRequest());
+
+    try {
+        const result = await axios.get(`${process.env.REACT_APP_BASE_URL}/Teachers/${id}`);
+        if (result.data.message) {
+            dispatch(getFailed(result.data.message));
+        } else {
+            dispatch(getTeachersSuccess(result.data));
+        }
+    } catch (error) {
+        dispatch(getError(error.message || 'An error occurred'));
+    }
+}
+
+export const getTeachersByClass = (id) => async (dispatch) => {
+    dispatch(getRequest());
+
+    try {
+        const result = await axios.get(`${process.env.REACT_APP_BASE_URL}/TeachersClass/${id}`);
+        if (result.data.message) {
+            dispatch(getFailed(result.data.message));
+        } else {
+            dispatch(getTeachersSuccess(result.data));
+        }
+    } catch (error) {
+        dispatch(getError(error.message || 'An error occurred'));
     }
 }
 
@@ -81,7 +127,7 @@ export const getTeacherFreeClassSubjects = (id) => async (dispatch) => {
             dispatch(getSubjectsSuccess(result.data));
         }
     } catch (error) {
-        dispatch(getError(error));
+        dispatch(getError(error.message || 'An error occurred'));
     }
 }
 
@@ -94,6 +140,6 @@ export const getSubjectDetails = (id, address) => async (dispatch) => {
             dispatch(getSubDetailsSuccess(result.data));
         }
     } catch (error) {
-        dispatch(getError(error));
+        dispatch(getError(error.message || 'An error occurred'));
     }
 }

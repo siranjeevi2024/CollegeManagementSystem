@@ -4,8 +4,9 @@ import { useNavigate } from 'react-router-dom'
 import { getAllTeachers } from '../../../redux/teacherRelated/teacherHandle';
 import {
     Paper, Table, TableBody, TableContainer,
-    TableHead, TablePagination, Button, Box, IconButton,
+    TableHead, TablePagination, Button, Box, IconButton, TextField, InputAdornment,
 } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
 import { deleteUser } from '../../../redux/userRelated/userHandle';
 import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
 import { StyledTableCell, StyledTableRow } from '../../../components/styles';
@@ -29,6 +30,7 @@ const ShowTeachers = () => {
 
     const [showPopup, setShowPopup] = useState(false);
     const [message, setMessage] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
 
     if (loading) {
         return <div>Loading...</div>;
@@ -61,15 +63,22 @@ const ShowTeachers = () => {
         { id: 'teachSclass', label: 'Class', minWidth: 170 },
     ];
 
-    const rows = teachersList.map((teacher) => {
-        return {
-            name: teacher.name,
-            teachSubject: teacher.teachSubject?.subName || null,
-            teachSclass: teacher.teachSclass.sclassName,
-            teachSclassID: teacher.teachSclass._id,
-            id: teacher._id,
-        };
-    });
+    const rows = teachersList
+        .filter((teacher) =>
+            teacher.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (teacher.teachSubject?.subName && teacher.teachSubject.subName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (teacher.teachSclass?.sclassName && teacher.teachSclass.sclassName.toLowerCase().includes(searchTerm.toLowerCase()))
+        )
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map((teacher) => {
+            return {
+                name: teacher.name,
+                teachSubject: teacher.teachSubject?.subName || null,
+                teachSclass: teacher.teachSclass?.sclassName || 'Not Assigned',
+                teachSclassID: teacher.teachSclass?._id || null,
+                id: teacher._id,
+            };
+        });
 
     const actions = [
         {
@@ -84,6 +93,22 @@ const ShowTeachers = () => {
 
     return (
         <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'center', marginBottom: '16px', marginTop: '16px' }}>
+                <TextField
+                    label="Search Teachers"
+                    variant="outlined"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    sx={{ width: '300px' }}
+                    InputProps={{
+                        startAdornment: (
+                            <InputAdornment position="start">
+                                <SearchIcon />
+                            </InputAdornment>
+                        ),
+                    }}
+                />
+            </Box>
             <TableContainer>
                 <Table stickyHeader aria-label="sticky table">
                     <TableHead>

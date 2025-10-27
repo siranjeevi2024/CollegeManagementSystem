@@ -5,8 +5,9 @@ import { getSubjectList } from '../../../redux/sclassRelated/sclassHandle';
 import { deleteUser } from '../../../redux/userRelated/userHandle';
 import PostAddIcon from '@mui/icons-material/PostAdd';
 import {
-    Paper, Box, IconButton,
+    Paper, Box, IconButton, TextField, InputAdornment,
 } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
 import DeleteIcon from "@mui/icons-material/Delete";
 import TableTemplate from '../../../components/TableTemplate';
 import { BlueButton, GreenButton } from '../../../components/buttonStyles';
@@ -29,6 +30,7 @@ const ShowSubjects = () => {
 
     const [showPopup, setShowPopup] = useState(false);
     const [message, setMessage] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
 
     const deleteHandler = (deleteID, address) => {
         // console.log(deleteID);
@@ -48,15 +50,22 @@ const ShowSubjects = () => {
         { id: 'sclassName', label: 'Class', minWidth: 170 },
     ]
 
-    const subjectRows = subjectsList.map((subject) => {
-        return {
-            subName: subject.subName,
-            sessions: subject.sessions,
-            sclassName: subject.sclassName.sclassName,
-            sclassID: subject.sclassName._id,
-            id: subject._id,
-        };
-    })
+    const subjectRows = subjectsList
+        .filter((subject) =>
+            subject.subName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            subject.sessions.toString().includes(searchTerm) ||
+            subject.sclassName.sclassName.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+        .sort((a, b) => a.subName.localeCompare(b.subName))
+        .map((subject) => {
+            return {
+                subName: subject.subName,
+                sessions: subject.sessions,
+                sclassName: subject.sclassName.sclassName,
+                sclassID: subject.sclassName._id,
+                id: subject._id,
+            };
+        })
 
     const SubjectsButtonHaver = ({ row }) => {
         return (
@@ -98,6 +107,22 @@ const ShowSubjects = () => {
                         </Box>
                         :
                         <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'center', marginBottom: '16px', marginTop: '16px' }}>
+                                <TextField
+                                    label="Search Subjects"
+                                    variant="outlined"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    sx={{ width: '300px' }}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <SearchIcon />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                />
+                            </Box>
                             {Array.isArray(subjectsList) && subjectsList.length > 0 &&
                                 <TableTemplate buttonHaver={SubjectsButtonHaver} columns={subjectColumns} rows={subjectRows} />
                             }

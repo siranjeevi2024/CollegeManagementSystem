@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { StyledTableCell, StyledTableRow } from './styles';
 import { Table, TableBody, TableContainer, TableHead, TablePagination } from '@mui/material';
 
-const TableTemplate = ({ buttonHaver: ButtonHaver, columns, rows }) => {
+const TableTemplate = ({ buttonHaver: ButtonHaver, columns, rows, onSort }) => {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5);
     return (
@@ -15,9 +15,15 @@ const TableTemplate = ({ buttonHaver: ButtonHaver, columns, rows }) => {
                                 <StyledTableCell
                                     key={column.id}
                                     align={column.align}
-                                    style={{ minWidth: column.minWidth }}
+                                    style={{ minWidth: column.minWidth, cursor: onSort ? 'pointer' : 'default' }}
+                                    onClick={() => onSort && onSort(column.id)}
                                 >
                                     {column.label}
+                                    {onSort && (
+                                        <span style={{ marginLeft: 8 }}>
+                                            {column.id === 'name' ? '↑↓' : column.id === 'rollNum' ? '↑↓' : column.id === 'sclassName' ? '↑↓' : ''}
+                                        </span>
+                                    )}
                                 </StyledTableCell>
                             ))}
                             <StyledTableCell align="center">

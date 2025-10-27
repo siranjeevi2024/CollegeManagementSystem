@@ -23,6 +23,7 @@ const StudentComplain = () => {
 
     const fields = {
         user,
+        userType: "student",
         date,
         complaint,
         school,
@@ -39,11 +40,13 @@ const StudentComplain = () => {
             setLoader(false)
             setShowPopup(true)
             setMessage("Done Successfully")
+            setComplaint("")
+            setDate("")
         }
-        else if (error) {
+        else if (status === "error") {
             setLoader(false)
             setShowPopup(true)
-            setMessage("Network Error")
+            setMessage(error?.response?.data?.message || error?.message || "Network Error")
         }
     }, [status, error])
 

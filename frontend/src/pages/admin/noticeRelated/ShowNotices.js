@@ -1,8 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from "react-router-dom";
 import {
-    Paper, Box, IconButton
+    Paper, Box, IconButton, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button
 } from '@mui/material';
 import NoteAddIcon from '@mui/icons-material/NoteAdd';
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -19,6 +19,9 @@ const ShowNotices = () => {
     const { noticesList, loading, error, response } = useSelector((state) => state.notice);
     const { currentUser } = useSelector(state => state.user)
 
+    const [openDialog, setOpenDialog] = useState(false);
+    const [selectedNoticeId, setSelectedNoticeId] = useState(null);
+
     useEffect(() => {
         dispatch(getAllNotices(currentUser._id, "Notice"));
     }, [currentUser._id, dispatch]);
@@ -26,6 +29,27 @@ const ShowNotices = () => {
     if (error) {
         console.log(error);
     }
+
+    const handleDeleteClick = (noticeId) => {
+        setSelectedNoticeId(noticeId);
+        setOpenDialog(true);
+    };
+
+    const handleConfirmDelete = () => {
+        if (selectedNoticeId) {
+            dispatch(deleteUser(selectedNoticeId, "Notice"))
+                .then(() => {
+                    dispatch(getAllNotices(currentUser._id, "Notice"));
+                });
+        }
+        setOpenDialog(false);
+        setSelectedNoticeId(null);
+    };
+
+    const handleCloseDialog = () => {
+        setOpenDialog(false);
+        setSelectedNoticeId(null);
+    };
 
     const deleteHandler = (deleteID, address) => {
         dispatch(deleteUser(deleteID, address))
@@ -54,7 +78,7 @@ const ShowNotices = () => {
     const NoticeButtonHaver = ({ row }) => {
         return (
             <>
-                <IconButton onClick={() => deleteHandler(row.id, "Notice")}>
+                <IconButton onClick={() => handleDeleteClick(row.id)}>
                     <DeleteIcon color="error" />
                 </IconButton>
             </>
@@ -95,6 +119,27 @@ const ShowNotices = () => {
                     }
                 </>
             }
+            <Dialog
+                open={openDialog}
+                onClose={handleCloseDialog}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <DialogTitle id="alert-dialog-title">
+                    {"Confirm Deletion"}
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                        Are you sure you want to delete this notice? This action cannot be undone.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseDialog}>Cancel</Button>
+                    <Button onClick={handleConfirmDelete} color="error" autoFocus>
+                        Delete
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </>
     );
 };

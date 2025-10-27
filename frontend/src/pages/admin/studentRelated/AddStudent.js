@@ -21,10 +21,16 @@ const AddStudent = ({ situation }) => {
     const [password, setPassword] = useState('')
     const [className, setClassName] = useState('')
     const [sclassName, setSclassName] = useState('')
+    const [dob, setDob] = useState('');
+    const [gender, setGender] = useState('');
+    const [email, setEmail] = useState('');
+    const [phone, setPhone] = useState('');
+    const [address, setAddress] = useState('');
+    const [emergencyContact, setEmergencyContact] = useState('');
 
     const adminID = currentUser._id
     const role = "Student"
-    const attendance = []
+
 
     useEffect(() => {
         if (situation === "Class") {
@@ -53,7 +59,7 @@ const AddStudent = ({ situation }) => {
         }
     }
 
-    const fields = { name, rollNum, password, sclassName, adminID, role, attendance }
+    const fields = { name, rollNum, password, sclassName, adminID, role, dob, gender, email, phone, address, emergencyContact }
 
     const submitHandler = (event) => {
         event.preventDefault()
@@ -124,6 +130,46 @@ const AddStudent = ({ situation }) => {
                         value={password}
                         onChange={(event) => setPassword(event.target.value)}
                         autoComplete="new-password" required />
+
+                    <label>Date of Birth</label>
+                    <input className="registerInput" type="date"
+                        value={dob}
+                        onChange={(event) => setDob(event.target.value)}
+                        required />
+
+                    <label>Gender</label>
+                    <select className="registerInput"
+                        value={gender}
+                        onChange={(event) => setGender(event.target.value)} required>
+                        <option value=''>Select Gender</option>
+                        <option value='Male'>Male</option>
+                        <option value='Female'>Female</option>
+                        <option value='Other'>Other</option>
+                    </select>
+
+                    <label>Email</label>
+                    <input className="registerInput" type="email" placeholder="Enter student's email..."
+                        value={email}
+                        onChange={(event) => setEmail(event.target.value)}
+                        autoComplete="email" required />
+
+                    <label>Phone</label>
+                    <input className="registerInput" type="tel" placeholder="Enter student's phone number..."
+                        value={phone}
+                        onChange={(event) => setPhone(event.target.value)}
+                        autoComplete="tel" required />
+
+                    <label>Address</label>
+                    <input className="registerInput" type="text" placeholder="Enter student's address..."
+                        value={address}
+                        onChange={(event) => setAddress(event.target.value)}
+                        autoComplete="address" required />
+
+                    <label>Emergency Contact</label>
+                    <input className="registerInput" type="tel" placeholder="Enter emergency contact number..."
+                        value={emergencyContact}
+                        onChange={(event) => setEmergencyContact(event.target.value)}
+                        autoComplete="tel" required />
 
                     <button className="registerButton" type="submit" disabled={loader}>
                         {loader ? (

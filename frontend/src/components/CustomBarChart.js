@@ -130,7 +130,7 @@ const TooltipMain = styled.h2`
 
 const CustomTooltipContent = ({ active, payload, dataKey }) => {
     if (active && payload && payload.length) {
-        const { subject, attendancePercentage, totalClasses, attendedClasses, marksObtained, subName } = payload[0].payload;
+        const { subject, attendancePercentage, totalClasses, attendedClasses, marksObtained, subName, grade, count } = payload[0].payload;
 
         return (
             <CustomTooltip>
@@ -139,6 +139,11 @@ const CustomTooltipContent = ({ active, payload, dataKey }) => {
                         <TooltipMain>{subject}</TooltipMain>
                         <TooltipText>Attended: ({attendedClasses}/{totalClasses})</TooltipText>
                         <TooltipText>{attendancePercentage}%</TooltipText>
+                    </>
+                ) : dataKey === "count" ? (
+                    <>
+                        <TooltipMain>{grade}</TooltipMain>
+                        <TooltipText>Count: {count}</TooltipText>
                     </>
                 ) : (
                     <>
@@ -154,13 +159,13 @@ const CustomTooltipContent = ({ active, payload, dataKey }) => {
 };
 
 const CustomBarChart = ({ chartData, dataKey }) => {
-    const subjects = chartData.map((data) => data.subject);
+    const subjects = chartData.map((data) => data.subject || data.grade);
     const distinctColors = generateDistinctColors(subjects.length);
 
     return (
         <BarChart width={500} height={500} data={chartData}>
-            <XAxis dataKey={dataKey === "marksObtained" ? "subName.subName" : "subject"} />
-            <YAxis domain={[0, 100]} />
+            <XAxis dataKey={dataKey === "marksObtained" ? "subName.subName" : (dataKey === "count" ? "grade" : "subject")} />
+            <YAxis domain={dataKey === "count" ? [0, 'dataMax'] : [0, 100]} />
             <Tooltip content={<CustomTooltipContent dataKey={dataKey} />} />
             <Bar dataKey={dataKey}>
                 {chartData.map((entry, index) => (

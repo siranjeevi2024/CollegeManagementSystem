@@ -15,17 +15,26 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import Logout from '../Logout'
 import AccountMenu from '../../components/AccountMenu';
 import { AppBar, Drawer } from '../../components/styles';
-import StudentAttendance from '../admin/studentRelated/StudentAttendance';
+import { useSelector } from 'react-redux';
+
 
 import TeacherClassDetails from './TeacherClassDetails';
 import TeacherComplain from './TeacherComplain';
 import TeacherHomePage from './TeacherHomePage';
 import TeacherProfile from './TeacherProfile';
 import TeacherViewStudent from './TeacherViewStudent';
+import TeacherShowTimetable from './TeacherShowTimetable';
+import TeacherAssignments from './TeacherAssignments';
+import TeacherResults from './TeacherResults';
+import TeacherEvents from './TeacherEvents';
+import AddEvent from './eventRelated/AddEvent';
+import TeacherAttendance from './TeacherAttendance';
 import StudentExamMarks from '../admin/studentRelated/StudentExamMarks';
+
 
 const TeacherDashboard = () => {
     const [open, setOpen] = useState(true);
+    const { currentUser } = useSelector(state => state.user);
     const toggleDrawer = () => {
         setOpen(!open);
     };
@@ -55,7 +64,7 @@ const TeacherDashboard = () => {
                             noWrap
                             sx={{ flexGrow: 1 }}
                         >
-                            Teacher Dashboard
+                            Hi {currentUser?.name}
                         </Typography>
                         <AccountMenu />
                     </Toolbar>
@@ -84,8 +93,18 @@ const TeacherDashboard = () => {
                         <Route path="/Teacher/class" element={<TeacherClassDetails />} />
                         <Route path="/Teacher/class/student/:id" element={<TeacherViewStudent />} />
 
-                        <Route path="/Teacher/class/student/attendance/:studentID/:subjectID" element={<StudentAttendance situation="Subject" />} />
                         <Route path="/Teacher/class/student/marks/:studentID/:subjectID" element={<StudentExamMarks situation="Subject" />} />
+
+                        <Route path="/Teacher/timetable" element={<TeacherShowTimetable />} />
+
+                        <Route path="/Teacher/assignments" element={<TeacherAssignments />} />
+
+                        <Route path="/Teacher/results" element={<TeacherResults />} />
+
+                        <Route path="/Teacher/events" element={<TeacherEvents />} />
+                        <Route path="/Teacher/events/add" element={<AddEvent />} />
+
+                        <Route path="/Teacher/attendance" element={<TeacherAttendance />} />
 
                         <Route path="/logout" element={<Logout />} />
                     </Routes>

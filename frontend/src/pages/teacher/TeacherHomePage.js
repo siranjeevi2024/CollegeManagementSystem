@@ -9,6 +9,8 @@ import Time from "../../assets/time.svg";
 import { getClassStudents, getSubjectDetails } from '../../redux/sclassRelated/sclassHandle';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
+import CalendarWidget from '../../components/CalendarWidget';
+import ClockWidget from '../../components/ClockWidget';
 
 const TeacherHomePage = () => {
     const dispatch = useDispatch();
@@ -51,21 +53,18 @@ const TeacherHomePage = () => {
                     </Grid>
                     <Grid item xs={12} md={3} lg={3}>
                         <StyledPaper>
-                            <img src={Tests} alt="Tests" />
-                            <Title>
-                                Tests Taken
-                            </Title>
-                            <Data start={0} end={24} duration={4} />
-                        </StyledPaper>
-                    </Grid>
-                    <Grid item xs={12} md={3} lg={3}>
-                        <StyledPaper>
                             <img src={Time} alt="Time" />
                             <Title>
                                 Total Hours
                             </Title>
                             <Data start={0} end={30} duration={4} suffix="hrs"/>                        </StyledPaper>
                     </Grid>
+                    <Grid item xs={12} md={3} lg={3}>
+                        <StyledPaper>
+                            <ClockWidget />
+                        </StyledPaper>
+                    </Grid>
+
                     <Grid item xs={12}>
                         <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
                             <SeeNotice />

@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom'
-import { getClassDetails, getClassStudents, getSubjectList } from "../../../redux/sclassRelated/sclassHandle";
-import { deleteUser } from '../../../redux/userRelated/userHandle';
+import { getClassDetails, getClassStudents, getSubjectList, getTeachersByClass } from "../../../redux/sclassRelated/sclassHandle";
+// import { deleteUser } from '../../../redux/userRelated/userHandle';
 import {
     Box, Container, Typography, Tab, IconButton
 } from '@mui/material';
 import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
-import { resetSubjects } from "../../../redux/sclassRelated/sclassSlice";
+// import { resetSubjects } from "../../../redux/sclassRelated/sclassSlice";
 import { BlueButton, GreenButton, PurpleButton } from "../../../components/buttonStyles";
 import TableTemplate from "../../../components/TableTemplate";
 import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
@@ -23,7 +23,7 @@ const ClassDetails = () => {
     const params = useParams()
     const navigate = useNavigate()
     const dispatch = useDispatch();
-    const { subjectsList, sclassStudents, sclassDetails, loading, error, response, getresponse } = useSelector((state) => state.sclass);
+    const { subjectsList, sclassStudents, sclassDetails, teachersList, loading, error, response, getresponse } = useSelector((state) => state.sclass);
 
     const classID = params.id
 
@@ -31,6 +31,7 @@ const ClassDetails = () => {
         dispatch(getClassDetails(classID, "Sclass"));
         dispatch(getSubjectList(classID, "ClassSubjects"))
         dispatch(getClassStudents(classID));
+        dispatch(getTeachersByClass(classID));
     }, [dispatch, classID])
 
     if (error) {
@@ -203,10 +204,46 @@ const ClassDetails = () => {
         )
     }
 
+    const teacherColumns = [
+        { id: 'name', label: 'Name', minWidth: 170 },
+    ]
+
+    const teacherRows = teachersList.map((teacher) => {
+        return {
+            name: teacher.name,
+            id: teacher._id,
+        };
+    })
+
+    const TeachersButtonHaver = ({ row }) => {
+        return (
+            <>
+                <BlueButton
+                    variant="contained"
+                    onClick={() => navigate("/Admin/teachers/teacher/" + row.id)}
+                >
+                    View
+                </BlueButton>
+            </>
+        );
+    };
+
     const ClassTeachersSection = () => {
         return (
             <>
-                Teachers
+                {teachersList.length > 0 ? (
+                    <>
+                        <Typography variant="h5" gutterBottom>
+                            Teachers List:
+                        </Typography>
+
+                        <TableTemplate buttonHaver={TeachersButtonHaver} columns={teacherColumns} rows={teacherRows} />
+                    </>
+                ) : (
+                    <Typography variant="h6" gutterBottom>
+                        No teachers assigned to this class.
+                    </Typography>
+                )}
             </>
         )
     }
@@ -218,10 +255,10 @@ const ClassDetails = () => {
         return (
             <>
                 <Typography variant="h4" align="center" gutterBottom>
-                    Class Details
+                    Department Details
                 </Typography>
                 <Typography variant="h5" gutterBottom>
-                    This is Class {sclassDetails && sclassDetails.sclassName}
+                    This is Department {sclassDetails && sclassDetails.sclassName}
                 </Typography>
                 <Typography variant="h6" gutterBottom>
                     Number of Subjects: {numberOfSubjects}

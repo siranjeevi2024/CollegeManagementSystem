@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { getSubjectList } from '../../redux/sclassRelated/sclassHandle';
-import { BottomNavigation, BottomNavigationAction, Container, Paper, Table, TableBody, TableHead, Typography } from '@mui/material';
+import { getSubjectList, getClassDetails } from '../../redux/sclassRelated/sclassHandle';
+import { BottomNavigation, BottomNavigationAction, Container, Paper, Table, TableBody, TableHead, TableRow, Typography } from '@mui/material';
 import { getUserDetails } from '../../redux/userRelated/userHandle';
 import CustomBarChart from '../../components/CustomBarChart'
 
@@ -26,6 +26,7 @@ const StudentSubjects = () => {
 
     const [subjectMarks, setSubjectMarks] = useState([]);
     const [selectedSection, setSelectedSection] = useState('table');
+    const [allSubjects, setAllSubjects] = useState([]);
 
     useEffect(() => {
         if (userDetails) {
@@ -34,40 +35,80 @@ const StudentSubjects = () => {
     }, [userDetails])
 
     useEffect(() => {
-        if (subjectMarks === []) {
-            dispatch(getSubjectList(currentUser.sclassName._id, "ClassSubjects"));
+        if (subjectsList) {
+            setAllSubjects(subjectsList);
         }
-    }, [subjectMarks, dispatch, currentUser.sclassName._id]);
+    }, [subjectsList]);
+
+    useEffect(() => {
+        dispatch(getSubjectList(currentUser.sclassName._id, "ClassSubjects"));
+        dispatch(getClassDetails(currentUser.sclassName._id, "Sclass"));
+    }, [dispatch, currentUser.sclassName._id]);
+
 
     const handleSectionChange = (event, newSection) => {
         setSelectedSection(newSection);
+    };
+
+    const calculateGrade = (marks) => {
+        if (marks >= 90) return 'O';
+        if (marks >= 80) return 'A+';
+        if (marks >= 70) return 'A';
+        if (marks >= 60) return 'B+';
+        if (marks >= 50) return 'B';
+        if (marks >= 40) return 'C';
+        return 'U';
+    };
+
+    const getGradeColor = (grade) => {
+        const passGrades = ['O', 'A+', 'A', 'B+', 'B', 'C'];
+        return passGrades.includes(grade) ? 'green' : 'red';
+    };
+
+    const getSubjectById = (subId) => {
+        return allSubjects.find(subject => subject._id === subId);
     };
 
     const renderTableSection = () => {
         return (
             <>
                 <Typography variant="h4" align="center" gutterBottom>
-                    Subject Marks
+                    Exam Results
                 </Typography>
                 <Table>
                     <TableHead>
                         <StyledTableRow>
+                            <StyledTableCell>S.No</StyledTableCell>
+                            <StyledTableCell>Subject Code</StyledTableCell>
                             <StyledTableCell>Subject</StyledTableCell>
-                            <StyledTableCell>Marks</StyledTableCell>
+                            <StyledTableCell>Grade</StyledTableCell>
                         </StyledTableRow>
                     </TableHead>
                     <TableBody>
                         {subjectMarks.map((result, index) => {
-                            if (!result.subName || !result.marksObtained) {
+                            if (!result.subName || result.marksObtained === undefined || result.marksObtained === null) {
                                 return null;
                             }
+                            const subject = getSubjectById(result.subName._id);
+                            const subCode = subject ? subject.subCode : 'N/A';
+                            const grade = calculateGrade(result.marksObtained);
+                            const color = getGradeColor(grade);
                             return (
                                 <StyledTableRow key={index}>
+                                    <StyledTableCell>{index + 1}</StyledTableCell>
+                                    <StyledTableCell>{subCode}</StyledTableCell>
                                     <StyledTableCell>{result.subName.subName}</StyledTableCell>
-                                    <StyledTableCell>{result.marksObtained}</StyledTableCell>
+                                    <StyledTableCell sx={{ color: color, fontWeight: 'bold' }}>{grade}</StyledTableCell>
                                 </StyledTableRow>
                             );
                         })}
+                        {subjectMarks.length === 0 && (
+                            <TableRow>
+                                <StyledTableCell colSpan={4} align="center">
+                                    No results available yet.
+                                </StyledTableCell>
+                            </TableRow>
+                        )}
                     </TableBody>
                 </Table>
             </>
@@ -75,20 +116,28 @@ const StudentSubjects = () => {
     };
 
     const renderChartSection = () => {
-        return <CustomBarChart chartData={subjectMarks} dataKey="marksObtained" />;
+        // Filter valid marks for chart
+        const validMarks = subjectMarks
+            .filter(result => result.subName && result.marksObtained !== undefined && result.marksObtained !== null)
+            .map(result => ({
+                ...result,
+                subName: result.subName.subName,
+                marksObtained: result.marksObtained
+            }));
+        return <CustomBarChart chartData={validMarks} dataKey="marksObtained" />;
     };
 
     const renderClassDetailsSection = () => {
         return (
             <Container>
                 <Typography variant="h4" align="center" gutterBottom>
-                    Class Details
+                    Department Details
                 </Typography>
                 <Typography variant="h5" gutterBottom>
-                    You are currently in Class {sclassDetails && sclassDetails.sclassName}
+                    Department : {sclassDetails && sclassDetails.sclassName}
                 </Typography>
                 <Typography variant="h6" gutterBottom>
-                    And these are the subjects:
+                    Subjects:
                 </Typography>
                 {subjectsList &&
                     subjectsList.map((subject, index) => (
@@ -108,32 +157,7 @@ const StudentSubjects = () => {
                 <div>Loading...</div>
             ) : (
                 <div>
-                    {subjectMarks && Array.isArray(subjectMarks) && subjectMarks.length > 0
-                        ?
-                        (<>
-                            {selectedSection === 'table' && renderTableSection()}
-                            {selectedSection === 'chart' && renderChartSection()}
-
-                            <Paper sx={{ position: 'fixed', bottom: 0, left: 0, right: 0 }} elevation={3}>
-                                <BottomNavigation value={selectedSection} onChange={handleSectionChange} showLabels>
-                                    <BottomNavigationAction
-                                        label="Table"
-                                        value="table"
-                                        icon={selectedSection === 'table' ? <TableChartIcon /> : <TableChartOutlinedIcon />}
-                                    />
-                                    <BottomNavigationAction
-                                        label="Chart"
-                                        value="chart"
-                                        icon={selectedSection === 'chart' ? <InsertChartIcon /> : <InsertChartOutlinedIcon />}
-                                    />
-                                </BottomNavigation>
-                            </Paper>
-                        </>)
-                        :
-                        (<>
-                            {renderClassDetailsSection()}
-                        </>)
-                    }
+                    {renderClassDetailsSection()}
                 </div>
             )}
         </>

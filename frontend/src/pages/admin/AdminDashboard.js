@@ -12,6 +12,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppBar, Drawer } from '../../components/styles';
+import { useSelector } from 'react-redux';
 import Logout from '../Logout';
 import SideBar from './SideBar';
 import AdminProfile from './AdminProfile';
@@ -20,7 +21,7 @@ import AdminHomePage from './AdminHomePage';
 import AddStudent from './studentRelated/AddStudent';
 import SeeComplains from './studentRelated/SeeComplains';
 import ShowStudents from './studentRelated/ShowStudents';
-import StudentAttendance from './studentRelated/StudentAttendance';
+
 import StudentExamMarks from './studentRelated/StudentExamMarks';
 import ViewStudent from './studentRelated/ViewStudent';
 
@@ -37,13 +38,27 @@ import ChooseSubject from './teacherRelated/ChooseSubject';
 import ShowTeachers from './teacherRelated/ShowTeachers';
 import TeacherDetails from './teacherRelated/TeacherDetails';
 
+import ShowTimetable from './timetableRelated/ShowTimetable';
+import GenerateTimetable from './timetableRelated/GenerateTimetable';
+import AddTimetable from './timetableRelated/AddTimetable';
+
+import AddExamTimetable from './examTimetableRelated/AddExamTimetable';
+import ShowExamTimetable from './examTimetableRelated/ShowExamTimetable';
+
+import ShowResults from './resultsRelated/ShowResults';
+import PostResults from './resultsRelated/PostResults';
+
 import AddClass from './classRelated/AddClass';
 import ClassDetails from './classRelated/ClassDetails';
 import ShowClasses from './classRelated/ShowClasses';
+import AddEvent from './eventRelated/AddEvent';
+import ShowEvents from './eventRelated/ShowEvents';
+import StudentAttendance from './studentRelated/StudentAttendance';
 import AccountMenu from '../../components/AccountMenu';
 
 const AdminDashboard = () => {
-    const [open, setOpen] = useState(false);
+    const [open, setOpen] = useState(true);
+    const { currentUser } = useSelector(state => state.user);
     const toggleDrawer = () => {
         setOpen(!open);
     };
@@ -73,7 +88,7 @@ const AdminDashboard = () => {
                             noWrap
                             sx={{ flexGrow: 1 }}
                         >
-                            Admin Dashboard
+                            Hi {currentUser?.name}
                         </Typography>
                         <AccountMenu />
                     </Toolbar>
@@ -110,7 +125,6 @@ const AdminDashboard = () => {
                         <Route path="/Admin/addsubject/:id" element={<SubjectForm />} />
                         <Route path="/Admin/class/subject/:classID/:subjectID" element={<ViewSubject />} />
 
-                        <Route path="/Admin/subject/student/attendance/:studentID/:subjectID" element={<StudentAttendance situation="Subject" />} />
                         <Route path="/Admin/subject/student/marks/:studentID/:subjectID" element={<StudentExamMarks situation="Subject" />} />
 
                         {/* Class */}
@@ -123,7 +137,6 @@ const AdminDashboard = () => {
                         <Route path="/Admin/addstudents" element={<AddStudent situation="Student" />} />
                         <Route path="/Admin/students" element={<ShowStudents />} />
                         <Route path="/Admin/students/student/:id" element={<ViewStudent />} />
-                        <Route path="/Admin/students/student/attendance/:id" element={<StudentAttendance situation="Student" />} />
                         <Route path="/Admin/students/student/marks/:id" element={<StudentExamMarks situation="Student" />} />
 
                         {/* Teacher */}
@@ -133,6 +146,26 @@ const AdminDashboard = () => {
                         <Route path="/Admin/teachers/choosesubject/:id" element={<ChooseSubject situation="Norm" />} />
                         <Route path="/Admin/teachers/choosesubject/:classID/:teacherID" element={<ChooseSubject situation="Teacher" />} />
                         <Route path="/Admin/teachers/addteacher/:id" element={<AddTeacher />} />
+
+                        {/* Timetable */}
+                        <Route path="/Admin/timetable" element={<ShowTimetable />} />
+                        <Route path="/Admin/generatetimetable" element={<GenerateTimetable />} />
+                        <Route path="/Admin/addtimetable" element={<AddTimetable />} />
+
+                        {/* Exam Timetable */}
+                        <Route path="/Admin/examtimetable" element={<ShowExamTimetable />} />
+                        <Route path="/Admin/addexamtimetable" element={<AddExamTimetable />} />
+
+                        {/* Results */}
+                        <Route path="/Admin/results" element={<ShowResults />} />
+                        <Route path="/Admin/postresults" element={<PostResults />} />
+
+                        {/* Events */}
+                        <Route path="/Admin/events" element={<ShowEvents />} />
+                        <Route path="/Admin/addevent" element={<AddEvent />} />
+
+                        {/* Attendance */}
+                        <Route path="/Admin/attendance" element={<StudentAttendance />} />
 
                         <Route path="/logout" element={<Logout />} />
                     </Routes>

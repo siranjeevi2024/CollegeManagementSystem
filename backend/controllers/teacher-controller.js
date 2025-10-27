@@ -66,6 +66,24 @@ const getTeachers = async (req, res) => {
     }
 };
 
+const getTeachersByClass = async (req, res) => {
+    try {
+        let teachers = await Teacher.find({ teachSclass: req.params.id })
+            .populate("teachSubject", "subName")
+            .populate("teachSclass", "sclassName");
+        if (teachers.length > 0) {
+            let modifiedTeachers = teachers.map((teacher) => {
+                return { ...teacher._doc, password: undefined };
+            });
+            res.send(modifiedTeachers);
+        } else {
+            res.send({ message: "No teachers found" });
+        }
+    } catch (err) {
+        res.status(500).json(err);
+    }
+};
+
 const getTeacherDetail = async (req, res) => {
     try {
         let teacher = await Teacher.findById(req.params.id)
@@ -196,6 +214,7 @@ module.exports = {
     teacherRegister,
     teacherLogIn,
     getTeachers,
+    getTeachersByClass,
     getTeacherDetail,
     updateTeacherSubject,
     deleteTeacher,

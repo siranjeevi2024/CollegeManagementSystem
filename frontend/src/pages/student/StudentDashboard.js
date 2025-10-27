@@ -15,14 +15,23 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import StudentHomePage from './StudentHomePage';
 import StudentProfile from './StudentProfile';
 import StudentSubjects from './StudentSubjects';
-import ViewStdAttendance from './ViewStdAttendance';
+import StudentShowTimetable from './StudentShowTimetable';
+import StudentShowExamTimetable from './StudentShowExamTimetable';
+import StudentAssignments from './StudentAssignments';
+
 import StudentComplain from './StudentComplain';
+import StudentResults from './StudentResults';
+import StudentChatbot from './StudentChatbot';
+import StudentEvents from './StudentEvents';
+import ViewStdAttendance from './ViewStdAttendance';
 import Logout from '../Logout'
 import AccountMenu from '../../components/AccountMenu';
 import { AppBar, Drawer } from '../../components/styles';
+import { useSelector } from 'react-redux';
 
 const StudentDashboard = () => {
     const [open, setOpen] = useState(true);
+    const { currentUser } = useSelector(state => state.user);
     const toggleDrawer = () => {
         setOpen(!open);
     };
@@ -52,7 +61,7 @@ const StudentDashboard = () => {
                             noWrap
                             sx={{ flexGrow: 1 }}
                         >
-                            Student Dashboard
+                            Hi {currentUser?.name}
                         </Typography>
                         <AccountMenu />
                     </Toolbar>
@@ -77,8 +86,17 @@ const StudentDashboard = () => {
                         <Route path="/Student/profile" element={<StudentProfile />} />
 
                         <Route path="/Student/subjects" element={<StudentSubjects />} />
-                        <Route path="/Student/attendance" element={<ViewStdAttendance />} />
                         <Route path="/Student/complain" element={<StudentComplain />} />
+                        <Route path="/Student/timetable" element={<StudentShowTimetable />} />
+                        <Route path="/Student/examtimetable" element={<StudentShowExamTimetable />} />
+                        <Route path="/Student/assignments" element={<StudentAssignments />} />
+                        <Route path="/Student/results" element={<StudentResults />} />
+
+                        <Route path="/Student/chatbot" element={<StudentChatbot />} />
+
+                        <Route path="/Student/events" element={<StudentEvents />} />
+
+                        <Route path="/Student/attendance" element={<ViewStdAttendance />} />
 
                         <Route path="/logout" element={<Logout />} />
                     </Routes>
